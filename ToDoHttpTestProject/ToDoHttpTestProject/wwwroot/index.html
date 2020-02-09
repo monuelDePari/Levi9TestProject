@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Http To-Do</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <h2>to-do task list</h2>
+    <form name="taskForm">
+        <input type="hidden" name="id" value="0" />
+        <div class="form-group col-md-5">
+            <label for="title">Title: </label>
+            <input class="form-control" name="title" />
+        </div>
+        <div class="form-group col-md-5">
+            <label for="describtion">Describtion: </label>
+            <input class="form-control" name="describtion" type="text" />
+        </div>
+        <div class="form-group col-md-5">
+            <label for="importance">Importance: </label>
+            <input class="form-control" name="importance" type="number" />
+        </div>
+        <div class="form-group col-md-5">
+            <label for="dueDate">Due Date: </label>
+            <input class="form-control" name="dueDate" type="date" />
+        </div>
+        <div class="form-group col-md-5">
+            <label for="readiness">Readiness: </label>
+            <input class="form-control" name="readiness" type="number" />
+        </div>
+        <div class="panel-body">
+            <button type="submit" id="submit" class="btn btn-primary">Save: </button>
+            <a id="reset" class="btn btn-primary">Reset</a>
+        </div>
+    </form>
+    <table class="table table-condensed table-striped  col-md-6">
+        <thead><tr><th>Id</th><th>Title</th><th>Desciption</th><th>Importance</th><th>Due Date</th><th>Readiness</th><th></th></tr></thead>
+        <tbody>
+        </tbody>
+    </table>
+    <div>Levi9 Test Project 2020</div>
+    <script>
+        // Получение всех пользователей
+        async function GetTasks() {
+            // отправляет запрос и получаем ответ
+            const response = await fetch("/api/Tasks", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            // если запрос прошел нормально
+            if (response.ok === true) {
+                // получаем данные
+                const tasks = await response.json();
+                let rows = document.querySelector("tbody");
+                tasks.forEach(task => {
+                    console.log(tasks,"Task Get")
+                    // добавляем полученные элементы в таблицу
+                    rows.append(row(task));
+                });
+            }
+        }
+        // Получение одного пользователя
+        async function GetTask(id) {
+            const response = await fetch("/api/Tasks/" + id, {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const task = await response.json();
+                const form = document.forms["taskForm"];
+                form.elements["id"].value = task.id;
+                form.elements["title"].value = task.title;
+                form.elements["describtion"].value = task.describtion;
+                form.elements["importance"].value = task.importance;
+                form.elements["dueDate"].value = task.dueDate;
+                form.elements["readiness"].value = task.readiness;
+            }
+        }
+        // Добавление пользователя
+        async function CreateTask(taskTitle, taskDescribtion, taskImportance, taskDueDate, taskReadiness) {
+
+            const response = await fetch("api/Tasks", {
+                method: "POST",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: taskTitle,
+                    describtion: taskDescribtion,
+                    importance: parseInt(taskImportance),
+                    dueDate: taskDueDate,
+                    readiness: taskReadiness
+                })
+            });
+            if (response.ok === true) {
+                const task = await response.json();
+                reset();
+                document.querySelector("tbody").append(row(task));
+            }
+        }
+        // Изменение пользователя
+        async function EditTask(taskId, taskTitle, taskDescribtion, taskImportance, taskDueDate, taskReadiness) {
+            const response = await fetch("api/Tasks", {
+                method: "PUT",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    id: parseInt(taskId, 10),
+                    title: taskTitle,
+                    describtion: taskDescribtion,
+                    importance: parseInt(taskImportance, 10),
+                    dueDate: taskDueDate,
+                    readiness: taskReadiness
+                })
+            });
+            if (response.ok === true) {
+                const task = await response.json();
+                reset();
+                document.querySelector("tr[data-rowid='" + task.id + "']").replaceWith(row(task));
+            }
+        }
+        // Удаление пользователя
+        async function DeleteTask(id) {
+            const response = await fetch("/api/Tasks/" + id, {
+                method: "DELETE",
+                headers: { "Accept": "application/json" }
+            });
+            if (response.ok === true) {
+                const task = await response.json();
+                document.querySelector("tr[data-rowid='" + task.id + "']").remove();
+            }
+        }
+
+        // сброс формы
+        function reset() {
+            const form = document.forms["taskForm"];
+            form.reset();
+            form.elements["id"].value = 0;
+        }
+        // создание строки для таблицы
+        function row(task) {
+
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-rowid", task.id);
+
+            const idTd = document.createElement("td");
+            idTd.append(task.id);
+            tr.append(idTd);
+            ц
+            const titleTd = document.createElement("td");
+            titleTd.append(task.name);
+            tr.append(titleTd);
+
+            const describtionTd = document.createElement("td");
+            describtionTd.append(task.describtion);
+            tr.append(describtionTd);
+
+            const importanceTd = document.createElement("td");
+            importanceTd.append(task.importance);
+            tr.append(importanceTd);
+
+            const dueDateTd = document.createElement("td");
+            dueDateTd.append(task.dueDate);
+            tr.append(dueDateTd);
+
+            const readinessTd = document.createElement("td");
+            readinessTd.append(task.readiness);
+            tr.append(readinessTd);
+
+            const linksTd = document.createElement("td");
+
+            const editLink = document.createElement("a");
+            editLink.setAttribute("data-id", task.id);
+            editLink.setAttribute("style", "cursor:pointer;padding:15px;");
+            editLink.append("Изменить");
+            editLink.addEventListener("click", e => {
+
+                e.preventDefault();
+                GetTask(user.id);
+            });
+            linksTd.append(editLink);
+
+            const removeLink = document.createElement("a");
+            removeLink.setAttribute("data-id", task.id);
+            removeLink.setAttribute("style", "cursor:pointer;padding:15px;");
+            removeLink.append("Delete");
+            removeLink.addEventListener("click", e => {
+
+                e.preventDefault();
+                DeleteTask(user.id);
+            });
+
+            linksTd.append(removeLink);
+            tr.appendChild(linksTd);
+
+            return tr;
+        }
+        // сброс значений формы
+        document.getElementById("reset").click(function (e) {
+
+            e.preventDefault();
+            reset();
+        })
+
+        // отправка формы
+        document.forms["taskForm"].addEventListener("submit", e => {
+            e.preventDefault();
+            const form = document.forms["taskForm"];
+            const id = form.elements["id"].value;
+            const title = form.elements["title"].value;
+            const describtion = form.elements["describtion"].value;
+            const importance = form.elements["importance"].value;
+            const dueDate = form.elements["dueDate"].value;
+            const readiness = form.elements["readiness"].value;
+            if (id == 0)
+                CreateTask(title, describtion, importance, dueDate, readiness);
+            else
+                EditTask(id, title, describtion, importance, dueDate, readiness);
+        });
+
+        // загрузка пользователей
+        GetTasks();
+
+    </script>
+</body>
+</html>
